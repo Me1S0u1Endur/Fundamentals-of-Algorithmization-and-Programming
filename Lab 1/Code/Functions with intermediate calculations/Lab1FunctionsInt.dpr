@@ -1,0 +1,225 @@
+Program Lab1FunctionsInt;
+
+{
+  Create a program that calculates matrix expressions. Find
+  the value of a given matrix expression using subprograms
+  that do not use global parameters.
+}
+
+// Determining the Console Program Type
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+Uses
+  System.SysUtils;
+
+// Determining the type for matrixes
+Type
+  TMatrix = array[1..3, 1..3] of Integer;
+
+// Declaring the initial matrixes used in the expression
+// Tepm1, Temp2, Temp3, Temp4, Temp5 - intemideate results
+// resultMatrix - result of expression
+Var
+  A, B:TMatrix;
+  resultOf:Integer;
+  resultMatrix:TMatrix;
+
+// Subprogram for inputting matrixes
+// Matrix inputMatrix is being entered by user. Inputted values are being checked. In case of the incorrect input it displays an error message
+Procedure initArray(Var inputMatrix:TMatrix);
+
+// Declaring counter variables
+Var
+  I, J:Integer;
+  Check:String;
+  Flags:Integer;
+
+Begin
+
+  For I := 1 to 3 do
+  Begin
+
+    For J := 1 to 3 do
+    Begin
+
+      Repeat
+
+      Write('Enter the [' + intToStr(I) + ', ' + intToStr(J) + '] element: ');
+      Readln(Check);
+      Val(Check, resultOf, Flags);
+
+      If (Flags <> 0) then
+        Writeln('Incorrect input')
+      Else
+        inputMatrix[I, J] := strToInt(Check);
+
+      Until (Flags = 0) and (resultOf > -100);
+
+    End;
+
+  End;
+
+End;
+
+// Subprogram for calculating the sum or sub of matrixes
+{
+  Two matrixes (firstMatrix, secondMatrix) of the same size are given.
+  The subprogram returns the matrix that is equal
+  to the result of summation or subtraction of
+  the given matrixes.
+}
+Function doSumOrSubOfMatrix(Const firstMatrix, secondMatrix:TMatrix; Const Flags:Boolean):TMatrix;
+
+// Variable declaration section
+Var
+  I, J, M, N:Integer;
+
+// I,J, M, N – counter variables
+
+
+// set matrix's length
+  Begin
+
+  M := length(firstMatrix);
+  N := length(secondMatrix);
+
+  For I := 1 to M do
+    For J := 1 to N do
+    Begin
+
+    If Flags then
+      result[I, J] := firstMatrix[I, J] + secondMatrix[I, J]
+    Else
+      result[I, J] := firstMatrix[I, J] - secondMatrix[I, J]
+
+    End;
+
+End;
+
+
+// Subprogram for multiplying the matrixes
+{
+  Two matrixes (firstMatrix1, secondMatrix1) of the 	   	  same size are given.
+  The subprogram returns the matrix that is equal
+  to the result of the multiplication of the matrixes.
+}
+Function doMultiplyMatrix(Const firstMatrix1, secondMatrix1:TMatrix):TMatrix;
+
+// Declaring counter variables
+Var
+  I, J, L, S, lengthOfArray:Integer;
+
+Begin
+
+// Set a length of matrix's
+  lengthOfArray := length(firstMatrix1);
+
+  For I := 1 to lengthOfArray do
+    For J := 1 to lengthOfArray do
+    Begin
+
+    S := 0;
+    For L := 1 to lengthOfArray do
+      S := S + firstMatrix1[I, L] * secondMatrix1[L, J];
+
+    result[I, J] := S;
+
+    End;
+
+End;
+
+
+// Subprogram for multiplying the matrix by a number
+{
+  The firstMatrix1 matrix and the multiplier number are given. The
+  subprogram returns the value of the matrix multiplied by a number.
+}
+Function doMultiplyNum(Const firstMatrix1:TMatrix; Const Number:Integer):TMatrix;
+
+// Declaring counter variables
+Var
+  I, J, L, lengthOfArray:Integer;
+Begin
+
+// Set matrix's length
+  lengthOfArray := length(firstMatrix1);
+
+  For I := 1 to lengthOfArray do
+    For J := 1 to lengthOfArray do
+        result[I, J] := firstMatrix1[I, J] * Number;
+
+End;
+
+// Subprogram for outputting the matrix
+{
+  A matrix outputMatrix is given. The procedure outputs the
+  formatted values of the matrix elements.
+}
+Procedure doPrintMatrix(Const outputMatrix:TMatrix);
+
+// Declaring counter variables
+Var
+  I, J:Integer;
+
+Begin
+
+  For I := 1 to length(outputmatrix)  do
+  Begin
+
+    For J := 1 to length(outputMatrix)  do
+      Write(outputMatrix[I, J]:6);
+
+    Writeln;
+  End;
+
+  Writeln;
+End;
+
+Begin
+
+  // Inputting matrixes
+  Writeln('Enter the matrix A: ');
+  initArray(A);
+  Writeln('Enter the matrix B: ');
+  initArray(B);
+
+  // Outputting the initial matrixes
+  Writeln('Matrix A: ');
+  doPrintMatrix(A);
+
+  Writeln('Matrix B: ');
+  doPrintMatrix(B);
+
+  // Calculate result matrix
+  resultMatrix := doSumOrSubOfMatrix(A, B, True);
+  Writeln('A + B: ');
+  doPrintMatrix(resultMatrix);
+
+  resultMatrix := doMultiplyNum(doSumOrSubOfMatrix(A, B, True), 3);
+  Writeln('3 * (A + B): ');
+  doPrintMatrix(resultMatrix);
+
+  resultMatrix := doMultiplyMatrix(A, B);
+  Writeln('A * B: ');
+  doPrintMatrix(resultMatrix);
+
+  resultMatrix := doMultiplyNum(A, 2);
+  Writeln('2 * A: ');
+  doPrintMatrix(resultMatrix);
+
+  resultMatrix := doSumOrSubOfMatrix(doMultiplyMatrix(A, B), doMultiplyNum(A, 2), False);
+  Writeln('A * B - 2 * A: ');
+  doPrintMatrix(resultMatrix);
+
+  resultMatrix := doMultiplyMatrix(doMultiplyNum(doSumOrSubOfMatrix(A, B, True), 3), doSumOrSubOfMatrix(doMultiplyMatrix(A, B), doMultiplyNum(A, 2), False));
+
+  // Output result matrix
+  Writeln('Result matrix 3 * (A + B) * (A * B - 2 * A): ');
+  doPrintMatrix(resultMatrix);
+
+  Writeln('Press any key to end...');
+  Readln;
+End.
+
