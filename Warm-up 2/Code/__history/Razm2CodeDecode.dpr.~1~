@@ -1,0 +1,318 @@
+program Razm2CodeDecode;
+
+{$APPTYPE CONSOLE}
+
+{$R *.res}
+
+uses
+  System.SysUtils;
+
+type
+  TMatrix = array of array of Char;
+
+var
+  inputLine, outputLine: String;
+  myMatrix: TMatrix;
+  number: Integer;
+
+const
+  FINAL_MESSAGE = 'Press any button to terminate...';
+  FILE_DIRECTORY = 'D:\Work\GitHub\\textFile.txt';
+  DONE_MESSAGE = 'Done!';
+
+procedure enterTheString(var S: String);
+begin
+  Writeln('Enter the string...');
+  readln(S);
+  writeln('Done!');
+end;
+
+procedure cleanString(var S: String);
+begin
+  S := '';
+  writeln(DONE_MESSAGE);
+end;
+
+procedure showInfo();
+begin
+  writeln('------------------------------------');
+  writeln('"1" - enter the string');
+  writeln('"2" - clean a string buffer');
+  writeln('"3" - code the string');
+  writeln('"4" - decode the string');
+  writeln('"5" - print the result as matrix');
+  writeln('"6" - print the result as string');
+  writeln('"7" - read a file');
+  writeln('"8" - write file');
+  writeln('"0" - exit');
+  writeln('------------------------------------');
+end;
+
+function checkNumber: Integer;
+var
+  check: String;
+  Error: Integer;
+begin
+  repeat
+    //write('Enter the action you want to execute... ');
+    readln(check);
+    val(check, Result, Error);
+    if (Error <> 0) or (Result <= -1) then
+      writeln('Incorrect input. Try again', #13#10);
+  until (Error = 0) and (Result > -1);
+end;
+
+procedure doPrintMatrix(const outputMatrix: TMatrix);
+var
+  i, j: Integer;
+begin
+  for I := 0 to high(outputmatrix)  do
+  begin
+    for j := 0 to high(outputMatrix)  do
+      write(outputMatrix[i, j]:6);
+    writeln;
+  end;
+  writeln(DONE_MESSAGE);
+end;
+
+procedure doPrintString(const outputMatrix: TMatrix);
+var
+  i: Integer;
+  j: Integer;
+begin
+  for i := 0 to high(outputMatrix) do
+    for j := 0 to high(outputMatrix) do
+      write(outputMatrix[i, j] + ' ');
+
+  writeln(#13#10, DONE_MESSAGE, #13#10);
+end;
+
+procedure matrixToString(const matrix: TMatrix; var outputString1: String);
+var
+  i, j, k: Integer;
+  lengthOfString: Integer;
+begin
+  lengthOfString := sqr(high(matrix) + 1);
+  setLength(outputString1, lengthOfString);
+  k := 1;
+  
+  while k < length(outputString1) do
+  begin
+    for i := 0 to high(matrix) do
+    begin
+      for j := 0 to high(matrix) do
+      begin
+        outputString1[k] := matrix[i, j];
+        inc(k);
+      end;
+    end;
+  end;
+end;
+
+procedure stringToMatrix(var matrix: TMatrix; const outputString1: String);
+var
+  i, j, k: Integer;
+  lengthOfMatrix: Integer;
+begin
+  k := 1;
+  lengthOfMatrix := round(sqrt(length(outputString1)));
+  setLength(matrix, lengthOfMatrix, lengthOfMatrix);
+
+  while k < length(outputString1) do
+  begin
+    for i := 0 to high(matrix) do
+    begin
+      for j := 0 to high(matrix) do
+      begin
+        matrix[i, j] := outputString1[k];
+        inc(k);
+      end;
+    end;
+  end;
+  
+end;
+
+procedure readFile(var matrix: TMatrix);
+var
+  f: TextFile;
+  inputString: String;
+begin
+  assignFile(f, FILE_DIRECTORY);
+  reset(f);
+  readln(f, inputString);
+  closeFile(f);
+  
+  stringToMatrix(matrix, inputString);
+  writeln(DONE_MESSAGE);
+end;
+
+procedure writeFile(var matrix: TMatrix; var outputString: String);
+var
+  f: TextFile;
+  i: Integer;
+begin
+  matrixToString(matrix, outputString);
+  assignFile(f, FILE_DIRECTORY);
+  rewrite(f);
+
+  writeln(f, outputString);
+
+  closeFile(f);
+  writeln(DONE_MESSAGE);
+end;
+
+procedure codeString(const S: String; var codedMatrix: TMatrix; var outputString: String);
+var
+  i, j, k, tempX, tempY, startPoint, cycleCounter: Integer;
+  lengthOf: Integer;
+begin
+  lengthOf := round(sqrt(length(S)));
+  setLength(codedMatrix, lengthOf, lengthOf);
+  tempX := 0;
+  tempY := 0;
+  i := 0;
+  j := 0;
+  k := 1;
+  startPoint := 0;
+  cycleCounter := 0;
+
+  while k <= length(S) do
+  begin
+    if cycleCounter >= 1 then
+      inc(startPoint);
+    for j := startPoint to high(codedMatrix) - tempX do
+    begin
+      codedMatrix[tempY, j] := S[k];
+      inc(k);
+    end;
+    for i := tempY + 1 to high(codedMatrix) - tempY do
+    begin
+      codedMatrix[i, high(codedMatrix) - tempX] := S[k];
+      inc(k);
+    end;
+    for j := high(codedMatrix) - tempX - 1 downto tempX do
+    begin
+      codedMatrix[high(codedMatrix) - tempY, j] := S[k];
+      inc(k);
+    end;
+
+    inc(tempY);
+
+    for i := high(codedMatrix) - tempY downto tempY do
+    begin
+      codedmatrix[i, tempX] := S[k];
+      inc(k);
+    end;
+    inc(tempX);
+    inc(cycleCounter);
+  end;
+
+  matrixToString(codedMatrix, outputString);
+  
+  writeln(DONE_MESSAGE);
+end;
+
+procedure decodeString(var codedMatrix: TMatrix; var S: String);
+var
+  i, j, k, tempX, tempY, startPoint, cycleCounter: Integer;
+  lengthOfString: Integer;
+begin
+  lengthOfString := sqr(high(codedMatrix) + 1);
+  setLength(S, lengthOfString);
+  
+  tempX := 0;
+  tempY := 0;
+  i := 0;
+  j := 0;
+  k := 1;
+  startPoint := 0;
+  cycleCounter := 0;  
+
+  while k < length(S) do
+  begin
+    if cycleCounter >= 1 then
+      inc(startPoint);
+    for j := startPoint to high(codedMatrix) - tempX do
+    begin
+      S[k] := codedMatrix[tempY, j];
+      inc(k);
+    end;
+    for i := tempY + 1 to high(codedMatrix) - tempY do
+    begin
+      S[k] := codedMatrix[i, high(codedMatrix) - tempX];
+      inc(k);
+    end;
+    for j := high(codedMatrix) - tempX - 1 downto tempX do
+    begin
+      S[k] := codedMatrix[high(codedMatrix) - tempY, j];
+      inc(k);
+    end;
+
+    inc(tempY);
+
+    for i := high(codedMatrix) - tempY downto tempY do
+    begin
+      S[k] := codedmatrix[i, tempX];
+      inc(k);
+    end;
+    inc(tempX);
+    inc(cycleCounter);
+  end;
+
+  stringToMatrix(codedMatrix, S);
+  
+  writeln(DONE_MESSAGE);
+end;
+
+procedure doChoice();
+var
+  number: Integer;
+  choice: Boolean;
+begin
+  choice := true;
+  repeat
+
+    writeln(#13#10, 'Which action you want to execute?');
+    writeln('Enter "9" to get info');
+    //showInfo;
+    number := checkNumber;
+
+
+    case number of
+      1:
+        enterTheString(inputLine);
+      2:
+        cleanString(inputLine);
+      3:
+        codeString(inputLine, myMatrix, outputLine);
+      4:
+        decodeString(myMatrix, inputLine);
+      5:
+        doPrintMatrix(myMatrix);
+      6:
+        doPrintString(myMatrix);
+      7:
+        readFile(myMatrix);
+      8:
+        writeFile(myMatrix, inputLine);
+      9:
+        showInfo;
+      0:
+        choice := false;
+      else
+        writeln(intToStr(number) + ' is incorrect input. Try again');
+    end;
+
+  until choice = false;
+end;
+
+begin
+//  readln(inputLine);
+//  codeString(inputLine, myMatrix);
+//  doPrintMatrix(myMatrix);
+  doChoice;
+
+
+  writeln(FINAL_MESSAGE);
+readln;
+end.
